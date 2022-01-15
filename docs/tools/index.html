@@ -1,0 +1,346 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>贝壳工具包</title>
+	<link rel="stylesheet" type="text/css" href="css/sty.css">
+	<link rel="stylesheet" type="text/css" href="css/styles.css">
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+</head>
+<body >
+
+	<div class="fixed-width-page">
+		<div class="bg-white tiled">
+
+			<form role="form" method="post">
+				<fieldset>
+                <legend>北科校园网链接转换(不支持手机)</legend>
+                				<div class="form-group ">
+					<label for="org_slug">
+						本功能简单来说，就是能模仿在学校访问网站的效果<br>
+						1、比如nature，这是个被墙的网站，但我们在学校可以访问<br>
+						于是我们在输入框输入https://www.nature.com/<br>
+						就能得到一个链接，这个链接是肯定不会被墙的，而且用的还是学校的机构号<br><br>
+						2、比如teach.ustb.edu.cn(本教)，在校外是进不去的，而vpn也没有给这个网站<br>
+						这时候我们在输入框输入http://teach.ustb.edu.cn/<br>
+					</label>
+					<div class="input-group">
+
+					</div>
+
+
+				</div>
+            	</fieldset>
+
+			</form>
+			<form action="form_action.asp" method="get">
+				输入要用校园网访问的网站: <input type="text" id="test1" />
+				<input type="button" onClick="build_ustb()" value="生成网址" />
+				<br>
+				要访问的网址为：<input type="text" id="test2" />
+				<input type="button" onClick="jump()" value="访问网址" />
+			</form>
+			<div>
+				<br>
+			</div>
+
+			<form role="form" method="post">
+				<fieldset>
+                <legend>sci-hub链接转换(不支持手机)</legend>
+                				<div class="form-group ">
+					<label for="org_slug">
+						本功能简单来说，就是直接得到一篇文献的sci-hub地址<br>
+						1、比如一篇paper：https://www.nature.com/articles/s41467-021-21544-2<br>
+						我们想直接得到他的pdf版本，传统的方式是在sci-hub打开，现在我们可以直接生成sci-hub的地址<br>
+					</label>
+					<div class="input-group">
+
+					</div>
+
+
+				</div>
+            	</fieldset>
+
+			</form>
+			<form action="form_action.asp" method="get">
+				输入要用sci-hub访问的网站: <input type="text" id="test3" />
+				<input type="button" onClick="build_scihub()" value="生成网址" />
+				<br>
+				要访问的网址为：<input type="text" id="test4" />
+				<input type="button" onClick="jump_scihub()" value="访问网址" />
+			</form>
+			<br>
+
+
+
+
+			<div class="m-t-25">
+				<p>使用过程中如果发现了什么bug及建议，欢迎提交到作者邮箱 <a href="mailto:starlitnightly@163.com">starlitnightly@163.com</a>.</p>
+				<p class="m-b-0">本网页仅供交流学习，并不用于任何商业用途</p>
+			</div>
+		</div>
+	</div>
+	<hr>
+
+
+	<div class="row footer-bottom">
+		<ul class="list-inline text-center">
+			<li>网站设计及制作</li><li>鱼摆烛潮</li>
+		</ul>
+	</div>
+
+
+
+</section>
+
+
+</body>
+
+
+<script type="text/javascript" src="http://vpn4.ustb.edu.cn/wengine-vpn/js/js/jquery.min.js"></script>
+<script type="text/javascript" src="http://vpn4.ustb.edu.cn/wengine-vpn/js/layer-v3.1.1/layer.js"></script>
+<script type="text/javascript" src="http://vpn4.ustb.edu.cn/wengine-vpn/js/layui/layui.js"></script>
+<script type="text/javascript" src="http://vpn4.ustb.edu.cn/wengine-vpn/js/aes-js.js"></script>
+
+<script type="text/javascript">
+	var utf8 = aesjs.utils.utf8;
+	var hex = aesjs.utils.hex
+	var AesCfb = aesjs.ModeOfOperation.cfb
+	var textRightAppend = function (text, mode) {
+		var segmentByteSize = mode === 'utf8' ? 16 : 32
+
+		if (text.length % segmentByteSize === 0) {
+			return text
+		}
+
+		var appendLength = segmentByteSize - text.length % segmentByteSize
+		var i = 0
+		while (i++ < appendLength) {
+			text += '0'
+		}
+		return text
+	}
+
+	var encrypt = function (text, key, iv) {
+		var textLength = text.length
+		text = textRightAppend(text, 'utf8')
+		var keyBytes = utf8.toBytes(key)
+		var ivBytes = utf8.toBytes(iv)
+		var textBytes = utf8.toBytes(text)
+		var aesCfb = new AesCfb(keyBytes, ivBytes, 16)
+		var encryptBytes = aesCfb.encrypt(textBytes)
+		return hex.fromBytes(ivBytes) + hex.fromBytes(encryptBytes).slice(0, textLength * 2)
+	}
+
+	var decrypt = function (text, key) {
+		var textLength = (text.length - 32) / 2
+		text = textRightAppend(text, 'hex')
+		var keyBytes = utf8.toBytes(key)
+		var ivBytes = hex.toBytes(text.slice(0, 32))
+		var textBytes = hex.toBytes(text.slice(32))
+		var aesCfb = new AesCfb(keyBytes, ivBytes, 16)
+		var decryptBytes = aesCfb.decrypt(textBytes)
+		return utf8.fromBytes(decryptBytes).slice(0, textLength)
+	}
+	var needEncrypt = 'true';
+
+
+
+	var index = 0;
+	String.prototype.endWith = function (endStr) {
+		var d = this.length - endStr.length;
+
+		return (d >= 0 && this.lastIndexOf(endStr) == d)
+
+	}
+
+	function browserCheck() {
+		var avail_browsers = ['IE11', 'Edge', 'Chrome', 'Firefox', 'Safari', 'Mobile']
+
+		var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+
+
+		var isFirefox = typeof InstallTrigger !== 'undefined';
+
+
+		var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) {
+			return p.toString() === "[object SafariRemoteNotification]";
+		})(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));
+
+
+		var isIE =  false || !!document.documentMode;
+
+
+		var isEdge = !isIE && !!window.StyleMedia;
+
+		var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+
+		var isChrome = !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime || !!window.chrome.loadTimes);
+		for (var i in avail_browsers) {
+			switch (avail_browsers[i]) {
+				case 'IE11':
+				if (isIE && parseInt(document.documentMode) >= 11) {
+					return true;
+				}
+				break;
+				case 'Edge':
+				if (isEdge) {
+					return true;
+				}
+				break;
+				case 'Chrome':
+				if (isChrome) {
+					return true;
+				}
+				break;
+				case 'Firefox':
+				if (isFirefox) {
+					return true;
+				}
+				break;
+				case 'Mobile':
+				if (isMobile) {
+					return true;
+				}
+				break;
+				case 'Safari':
+				if (isSafari) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	function encrypUrl(protocol, url) {
+		var port = "";
+		var segments = "";
+
+		if (url.substring(0, 7) == "http://") {
+			url = url.substr(7);
+		} else if (url.substring(0, 8) == "https://") {
+			url = url.substr(8);
+		}
+
+
+		var v6 = "";
+		var match = /\[[0-9a-fA-F:]+?\]/.exec(url);
+		if (match) {
+			v6 = match[0];
+			url = url.slice(match[0].length);
+		}
+		segments = url.split("?")[0].split(":");
+		if (segments.length > 1) {
+			port = segments[1].split("/")[0]
+			url = url.substr(0, segments[0].length) + url.substr(segments[0].length + port.length + 1);
+		}
+
+		if (needEncrypt && protocol != "connection") {
+			var i = url.indexOf('/');
+			if (i == -1) {
+				if (v6 != "") {
+					url = v6;
+				}
+				url = encrypt(url, "wrdvpnisthebest!", 'wrdvpnisthebest!')
+			} else {
+				var host = url.slice(0, i);
+				var path = url.slice(i);
+				if (v6 != "") {
+					host = v6;
+				}
+				url = encrypt(host, "wrdvpnisthebest!", 'wrdvpnisthebest!') + path;
+			}
+		}
+		if (port != "") {
+			url = "/" + protocol + "-" + port + "/" + url;
+		} else {
+			url = "/" + protocol + "/" + url;
+		}
+		console.log(url);
+		return url
+
+	}
+
+
+	function go() {
+		var protocol = $("#protocolType").val();
+		var url = $('#go_url').val();
+		url = encrypUrl(protocol, url)
+
+		if (protocol == "http" || protocol == "https") {
+			url = add_record(url)
+		}
+
+		$("#aHref").attr("href", url);
+		document.getElementById("aHref").click()
+	}
+
+	function add_record(url) {
+		if (url.indexOf("wrdrecordvisit") == -1) {
+			if (url.indexOf("?") != -1) {
+				url = url + "&wrdrecordvisit=record"
+			} else {
+				url = url + "?wrdrecordvisit=record"
+			}
+		}
+		return url;
+	}
+
+
+
+
+	function copyUrl2(){
+		var Url2=document.getElementById("test2");
+			Url2.select(); // 选择对象
+			document.execCommand("Copy"); // 执行浏览器复制命令
+			alert("已复制好，可贴粘。");
+		}
+
+	function build_ustb(){
+		var ut = document.getElementById("test1").value;
+		var a=ut.match("(?<=://)[a-zA-Z\.0-9]+(?=\/)");
+		var head=ut.split('//');
+		var zhong=encrypt(a[0],"wrdvpnisthebest!", 'wrdvpnisthebest!');
+		var wei=head[1].split(a[0]);
+		var t=head[0].replace(':','');
+		var resultValue="http://n.ustb.edu.cn/"+t+"/"+zhong+wei[1];
+		var ut2=document.getElementById("test2");
+		ut2.value=resultValue
+
+	}
+	function jump(){
+		var ut = document.getElementById("test1").value;
+		var a=ut.match("(?<=://)[a-zA-Z\.0-9]+(?=\/)");
+		var head=ut.split('//');
+		var zhong=encrypt(a[0],"wrdvpnisthebest!", 'wrdvpnisthebest!');
+		var wei=head[1].split(a[0]);
+		var t=head[0].replace(':','');
+		var resultValue="http://n.ustb.edu.cn/"+t+"/"+zhong+wei[1];
+		var ut2=document.getElementById("test2");
+		ut2.value=resultValue
+		window.open(resultValue);
+	}
+	function build_scihub(argument) {
+		var ut = document.getElementById("test3").value;
+		var resultValue="https://sci-hub.se/"+ut;
+		var ut2=document.getElementById("test4");
+		ut2.value=resultValue
+		// body...
+	}
+	function jump_scihub(){
+		var ut = document.getElementById("test4").value;
+		window.open(ut);
+
+	}
+
+
+
+	</script>
+	</html>
