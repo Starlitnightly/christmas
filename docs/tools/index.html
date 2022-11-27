@@ -307,12 +307,13 @@
 
 	function build_ustb(){
 		var ut = document.getElementById("test1").value;
-		var a=ut.match("(?<=://)[a-zA-Z\.0-9]+(?=\/)");
-		var head=ut.split('//');
-		var zhong=encrypt(a[0],"wrdvpnisthebest!", 'wrdvpnisthebest!');
-		var wei=head[1].split(a[0]);
-		var t=head[0].replace(':','');
-		var resultValue="http://n.ustb.edu.cn/"+t+"/"+zhong+wei[1];
+		//var a=ut.match("(?<=://)[a-zA-Z\.0-9]+(?=\/)");
+		var head=ut.split('://')[0];
+		var zhong=encrypUrl(head,ut)
+		//var zhong=encrypt(a[0],"wrdvpnisthebest!", 'wrdvpnisthebest!');
+		//var wei=head[1].split(a[0]);
+		//var t=head[0].replace(':','');
+		var resultValue="http://n.ustb.edu.cn"+zhong;
 		var ut2=document.getElementById("test2");
 		ut2.value=resultValue
 
